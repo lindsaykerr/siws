@@ -1,8 +1,43 @@
-#canvas {
+body {
+    margin: 0;
+}
+
+
+#container {
+    width: 100vw;
+    height: 100vh;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
-    width: 100%;
     z-index: 1;
+    overflow: hidden;
+    background-color: #000; /* Set a default background color */
+}
+
+/*
+#container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+*/
+#control {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+}
+
+
+#debug-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
 }

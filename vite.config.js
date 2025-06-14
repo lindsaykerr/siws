@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import * as myconfig from './project.config.js'
+import myconfig from './project.config';
 
 
 export default defineConfig({
