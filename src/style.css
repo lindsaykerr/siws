@@ -7,6 +7,7 @@ body {
     width: 100vw;
     height: 100vh;
     position: absolute;
+    display: flex;
     top: 0;
     left: 0;
     z-index: 1;
@@ -14,14 +15,13 @@ body {
     background-color: #000; /* Set a default background color */
 }
 
-/*
-#container {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
+
+#container video {
+    object-fit: cover;
+    align-self: center;
+
 }
-*/
+
 #control {
     position: absolute;
     top: 0;
@@ -41,3 +41,12 @@ body {
     font-family: Arial, sans-serif;
     font-size: 20px;
 }
+/**
+#tempCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    width: 50%;
+    height: 50%;
+}*/

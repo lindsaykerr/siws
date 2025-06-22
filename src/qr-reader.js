@@ -23,6 +23,11 @@ export default class QRReader {
             throw error;
         }
 
+        this.tempCanvas = document.createElement("canvas");
+        this.tempCanvas.id = "tempCanvas";
+        this.tempCanvas.style.visibility = "hidden";
+        document.body.appendChild(this.tempCanvas);
+        
         this.offscreen = canvasForOffscreen.transferControlToOffscreen();
         
         this.#initializeWorker();
@@ -62,7 +67,7 @@ export default class QRReader {
                     const { code, location } = event.data;
 
                     this.codeDetected = true;
-                    console.log("QR Code detected:", code);
+                    //console.log("QR Code detected:", code);
                     if (this.prevCode === code) {
                         this.lastCode = code;
                         this.currentCode = code;
@@ -79,6 +84,10 @@ export default class QRReader {
                     this.codeDetected = false;
                     //console.log("No QR Code detected");
                     break;  
+
+                case "recieve getbitmap":
+
+                    
                 default:
                     console.warn("Unknown message type from jsqrWorker:", event.data.type);
                 break;   
@@ -97,7 +106,26 @@ export default class QRReader {
      * @param {QRTimingRef} qrTimingRef - an object containing the lastTimeCheck and qrScanFrequency properties.
      * @returns {number} - the updated lastTimeCheck timestamp.
      */
-    checkForQr(source, qrTimingRef) {
+
+
+    get isReady() {
+        return this.#readerReady;
+    }
+    /**
+     * // checkForQr method checks if the source (video or canvas) has a QR code.
+     * @param {HTMLVideoElement|HTMLCanvasElement} source 
+     * @param {{lastTime: number, frequency:number}} qrTimingRef - timing reference, contains contains last timestamp value and frequency properties. 
+     */
+
+    showTempCanvas() {
+        
+        if (this.tempCanvas.style.visibility === "hidden") {
+            this.tempCanvas.style.visibility = "visible";
+        }
+    }
+
+    scanning(source, qrTimingRef) {
+
         if (source && Date.now() - qrTimingRef.lastTime > qrTimingRef.frequency) {
             this.#readImageSource(source);
             qrTimingRef.lastTime = Date.now();
@@ -111,21 +139,38 @@ export default class QRReader {
      * @returns 
      */
     #readImageSource(source) {
-        if (!this.#readerReady) {
+        if (!this.#readerReady && !source) {
             console.warn("QRReader is not ready yet.");
             return;
         }
 
-        createImageBitmap(source).then((bitmap) => {
-            this.worker.postMessage({
-                type: "frame",
-                bitmap: bitmap,
-                width: bitmap.width,
-                height: bitmap.height
-            }, [bitmap]);
+        /*
+        const width = source.width || source.videoWidth || parseInt((source.style.width).replace("px", ""),10);
+        const height = source.height || source.videoHeight ||parseInt((source.style.height).replace("px", ""),10); 
+
+        const offscreen = new OffscreenCanvas(width, height);
+        const ctx = offscreen.getContext("2d");
+        if (!ctx) {
+            console.error("Failed to get 2D context from OffscreenCanvas.");
+            return;
+        }
+     
+
+        ctx.drawImage(source, 0, 0, width, height);
+
+        const imageBitmap = offscreen.transferToImageBitmap();
+        */
+        createImageBitmap(source).then((imageBitmap) => {
+        this.worker.postMessage({
+            type: "frame",
+            bitmap: imageBitmap,
+            width: source.videoWidth || source.width,
+            height: source.videoHeight || source.height
+        },[imageBitmap]);
         }).catch((error) => {
-            console.error("Error creating ImageBitmap:", error);
+            console.error("Error creating ImageBitmap from source:", error);
         });
+           
     }
 
     /**
@@ -173,6 +218,15 @@ export default class QRReader {
         else {
             return;
         }
+    }
+
+    isNew() {
+        if (!this.codeDetected) {
+            return;
+        }
+    
+        return this.currentCode !== this.lastCode;
+    
     }
 
     /**

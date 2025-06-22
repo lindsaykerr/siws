@@ -25,3 +25,4 @@ dist-ssr
 node_modules
 project.config.js
 package-lock.json
+src/hiddenConfig.js
