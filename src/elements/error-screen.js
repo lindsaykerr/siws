@@ -1,7 +1,9 @@
+
 import "../styles/errors.css";
 
-const errorScreen = () => {
-  const errorScreen = document.createElement("div");
+let errorScreen = null;
+const initErrorScreen = () => {
+  errorScreen = document.createElement("div");
   errorScreen.id = "error-screen";
   errorScreen.innerHTML = `
     <h1 class="heading">Error Loading Wayfinding System</h1>
@@ -9,12 +11,36 @@ const errorScreen = () => {
     <ul class="messages">
     </ul>
   `;
-  // set to hidden by default
-  errorScreen.style.visibility = "hidden";
-  errorScreen.style.display = "none"; // Hide the error screen initially
-  document.body.appendChild(errorScreen);
 
-  return errorScreen;
+  document.body.appendChild(errorScreen);
 };
 
-export {errorScreen};
+/**
+ * Adds a list of messages to the error screen.
+ * @param {string[]} messages 
+ */
+const addErrorMessages = (messages) => {
+    if (!errorScreen) {
+        initErrorScreen();
+    }
+    if (!Array.isArray(messages) && typeof messages === 'string') {
+        messages = [messages];
+    }
+
+    const messageList = errorScreen.querySelector(".messages");
+    messages.forEach((message) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = message;
+        messageList.appendChild(listItem);
+    });
+
+}
+
+const showErrorScreen = () => {
+    if (!errorScreen) {
+        initErrorScreen();
+    }
+    errorScreen.style.display = "flex";
+}
+
+export {initErrorScreen, addErrorMessages,showErrorScreen};

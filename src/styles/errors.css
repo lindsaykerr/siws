@@ -1,14 +1,21 @@
 #error-screen {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 10000;
+  overflow: hidden;
+
+}
+
+#error-screen .messages {
+    max-width: 600px;
+    overflow-y: auto;
 }

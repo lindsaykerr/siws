@@ -1,20 +1,39 @@
 import '../styles/loading.css';
 
+/**@type {HTMLDivElement} */
+let loadingScreen = null;
+
+const initLoadingScreen = () => {
+    loadingScreen = document.createElement('div');
+    loadingScreen.id = 'loading-screen';
+    document.body.appendChild(loadingScreen);
+    loadingScreen.innerHTML = `
+        <h2 class="heading">Starting Wayfinding System</h2>
+        <h3 class="text">Please wait while application is loading.</h3>
+        <div class="spinner"></div>    
+    `;
+}
+
 /**
- * Creates a loading screen element and appends it to the body.
- * @returns {HTMLElement} The loading screen element.
+ * changes loading screen text content.
+ * @param {string} text - The text to display on the loading screen.
  */
-const loadingScreen = () => {
-  const loadingScreen = document.createElement('div');
-  loadingScreen.id = 'loading-screen';
-  loadingScreen.innerHTML = `
-    <h2>Please wait while the application is loading.</h2>
-    
-    <div class="spinner"></div>
-      
-  `;
-  document.body.appendChild(loadingScreen);
-  return loadingScreen;
+const changeLoadingText = (text) => {
+  const loadingText = document.querySelector('#loading-screen .text');
+  if (loadingText) {
+    loadingText.textContent = text;
+  }
 };
 
-export { loadingScreen };
+const hideLoadingScreen = () => {
+  loadingScreen.style.display = 'none';
+};
+const showLoadingScreen = () => {
+  if (!loadingScreen) {
+    initLoadingScreen();
+  }
+  loadingScreen.style.display = 'flex';
+};
+
+
+export { loadingScreen, initLoadingScreen, changeLoadingText, hideLoadingScreen, showLoadingScreen };

@@ -198,9 +198,9 @@ export default class NavIcon {
      * @param {{x: number, y:number, z:number}} iconParam.scale - The scale of the icon in 3D space.
      */
     setIconParameters(iconParam = {
-        position: { x: 0, y: -1, z: 0 },
+        position: { x: 0, y: -0.5, z: 0 },
         rotation: { x: Math.PI / 8, y: 0, z: 0 },
-        scale: { x: 4, y: 4, z: 4 }
+        scale: { x: 1.5, y: 1.5, z: 1.5 }
     }) {
         if (!this.icon) {
             console.warn("Icon is not loaded yet. Cannot set parameters.");
@@ -223,7 +223,12 @@ export default class NavIcon {
      * @param {THREE.Object3D} icon - The icon to be set for the navigation pointer.
      */
     setIcon(icon) {
-        if (!icon || !(icon instanceof THREE.Object3D)) {
+        if (!icon) {
+            console.error("Invalid icon: Icon cannot be null or undefined");
+            return;
+        }
+        if (!icon instanceof THREE.Object3D) {
+
             console.error("Invalid icon: Must be an instance of THREE.Object3D");
             return;
         }

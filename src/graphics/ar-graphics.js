@@ -12,6 +12,7 @@ export default class ARGraphics {
 
     ARScene;    // scene from MindARThree
     ARCamera;   // camera from MindARThree 
+    /** @type {THREE.WebGLRenderer} */
     ARRenderer; // Get the renderer from MindARThree
     hoverScene; // Scene for rendering UI elements on top of the AR scene
     hoverCamera; // Camera for the hover scene
@@ -62,9 +63,11 @@ export default class ARGraphics {
      */
     #setupARsystem() {
 
+        
         this.ARScene  = this.arSys.scene;       // get Three.js scene from MindARThree
         
         {   
+            
             this.ARRenderer = this.arSys.renderer;
             const width     = this.containerElement.offsetWidth;
             const height    = this.containerElement.offsetHeight;
@@ -73,7 +76,7 @@ export default class ARGraphics {
             this.ARRenderer.setPixelRatio(window.devicePixelRatio);
             this.ARRenderer.autoClearDepth = false; // Prevents clearing depth buffer on each fram
             this.ARRenderer.autoClear = false; // Prevents clearing color buffer on each frame 
-            this.ARRenderer.sortObjects = false;       
+            //this.ARRenderer.sortObjects = false;       
         }
 
         {
@@ -94,15 +97,33 @@ export default class ARGraphics {
     #setupHoverScene() {
 
         this.hoverScene     = new THREE.Scene();
+
+        this.hoverAspect = this.containerElement.offsetWidth / this.containerElement.offsetHeight;
+        
+        this.hoverCamera = new THREE.OrthographicCamera(
+            -1*this.hoverAspect, // left
+            1*this.hoverAspect,  // right
+            1, // top
+            -1, // bottom
+            -1, // near
+            1000 // far
+        );
+
+
+
+        /*
         this.hoverCamera    = new THREE.PerspectiveCamera(
             45,     // fov
             this.containerElement.offsetWidth / this.containerElement.offsetHeight, //aspect
             0.1,    // near 
             1000    // far
         );
-
-        this.hoverCamera.position.set(0, 0, 5);
+        */
+        this.hoverCamera.position.z = 0;
+        this.hoverCamera.position.y = 0;
+        //this.hoverCamera.position.set(0, 0, 5);
         this.hoverScene.add(this.hoverCamera);
+        
         
         console.log("UI Scene and Camera initialized.");
         
@@ -263,6 +284,16 @@ export default class ARGraphics {
         this.arSys.start(); 
     }
 
+    stop() {
+        if (!this.arSys) {
+            console.warn("AR system is not initialized. Cannot stop.");
+            return;
+        }
+        this.arSys.stop(); // Stop the AR system
+        this.#hideAR(); // Hide the AR scene
+        this.#hideOverlay(); // Hide the overlay scene
+    }
+
     /**
      * Access the MindARThree renderer
      * @returns {THREE.WebGLRenderer}
@@ -280,12 +311,12 @@ export default class ARGraphics {
     }
 
     #showAR() {
-        this.#ARAnchor.group.visible = true; // Show the AR anchor group
+        //this.#ARAnchor.group.visible = true; // Show the AR anchor group
         this.ARScene.visible = true; // Show the AR scene
     }
 
     #hideAR() {
-        this.#ARAnchor.group.visible = false; // Hide the AR anchor group
+        //this.#ARAnchor.group.visible = false; // Hide the AR anchor group
         this.ARScene.visible = false; // Hide the AR scene
     }
 
@@ -331,10 +362,13 @@ export default class ARGraphics {
         }
         */
         await this.updateAR(); // Update the AR and overlay orientation and direction arrow
-        
+        //this.ARRenderer.autoClear = false;
         this.ARRenderer.clear();  
-        this.ARRenderer.clearDepth();
+        //this.ARRenderer.clearColor();
+        this.ARRenderer.autoClear = true;
         this.ARRenderer.render(this.ARScene, this.ARCamera);
+        this.ARRenderer.clearDepth();
+        this.ARRenderer.autoClear = false;
         this.ARRenderer.render(this.hoverScene, this.hoverCamera);
     }  
 }
