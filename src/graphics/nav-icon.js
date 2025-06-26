@@ -198,7 +198,7 @@ export default class NavIcon {
      * @param {{x: number, y:number, z:number}} iconParam.scale - The scale of the icon in 3D space.
      */
     setIconParameters(iconParam = {
-        position: { x: 0, y: -0.5, z: 0 },
+        position: { x: 0, y: 0, z: 0 },
         rotation: { x: Math.PI / 8, y: 0, z: 0 },
         scale: { x: 1.5, y: 1.5, z: 1.5 }
     }) {

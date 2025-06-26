@@ -23,7 +23,7 @@ import CONFIG from './config.js';
 console.log(CONFIG.baseUrl);
 
 
-const DEBUG_AR = true; // AR debugging flag
+const DEBUG_AR = false; // AR debugging flag
 const debugOptions = {
     qr: true,      // QR code debugging flag
     ar: true,       // AR debugging flag
@@ -44,6 +44,7 @@ const MARKER_TYPES = {
     WARNING: "WARNING",
 }
 
+const focusTunnel = document.querySelector("#focus");
 
 const app = {
     mindAR: null,
@@ -67,7 +68,7 @@ const app = {
         lighting: {              
             overlaySceneLighting: [
                 (() =>{
-                    const ambient = new THREE.AmbientLight(0xffffff, 1.5); // Ambient light for the overlay scene 
+                    const ambient = new THREE.AmbientLight(0xffffff, 3); // Ambient light for the overlay scene 
                     ambient.position.set(0, 10, 0); // Position the light
                     return ambient;
                 })(),
@@ -291,7 +292,7 @@ new Promise((resolve, reject) => {
             uiLoading: true,
         })
 
-        app.graphics = new ARGraphics(app.mindAR, document.querySelector("#container"), true);
+        app.graphics = new ARGraphics(app.mindAR, document.querySelector("#container"), false);
 
         // Add a navigation icon to the AR scene
         app.navIcon = new NavIcon(app.graphics);
@@ -322,26 +323,33 @@ new Promise((resolve, reject) => {
 
 }).then(() => {
 
+    if (!DEBUG_AR) {
     
-    
-    // Before starting the AR session, the user must select a route, and make sure the correct camera is selected.
-    console.log("QR code reader loaded, selecting route...");
-    hideLoadingScreen();
-    initRouteOptions();
+        // Before starting the AR session, the user must select a route, and make sure the correct camera is selected.
+        console.log("QR code reader loaded, selecting route...");
+        hideLoadingScreen();
+        initRouteOptions();
 
-    document.querySelector("#route-select").addEventListener("change", (event) => {
-        const selectedRoute = event.target.value;
-        if (selectedRoute && app.routesData[selectedRoute]) {
-            app.selectedRoute = selectedRoute;
-            console.log(`Selected route: ${selectedRoute}`);
-            closeRouteOptions(); // Close the route selection screen
-            startARSession(); // Start the AR session
-        } else {
-            console.error("Invalid route selected.");
-            addErrorMessages("Invalid route selected. Please select a valid route.");
-        }
+        document.querySelector("#route-select").addEventListener("change", (event) => {
+            const selectedRoute = event.target.value;
+            if (selectedRoute && app.routesData[selectedRoute]) {
+                app.selectedRoute = selectedRoute;
+                console.log(`Selected route: ${selectedRoute}`);
+                closeRouteOptions(); // Close the route selection screen
+                startARSession(); // Start the AR session
+            } else {
+                console.error("Invalid route selected.");
+                addErrorMessages("Invalid route selected. Please select a valid route.");
+            }
 
-    });
+        });
+    }
+    else {
+        app.selectedRoute = "route-a"; // Default route for debugging
+        console.log("Debugging mode enabled, starting AR session with default route: route-a");
+        hideLoadingScreen(); // Hide the loading screen
+        startARSession(); // Start the AR session directly
+    }
 
 }).catch((error) => {
 
@@ -457,10 +465,12 @@ function startARSession() {
             }
         }
         if (ARsession) {
+            focusTunnel.style.display = 'none'; // Show the focus tunnel when QR code is detected
             ar.viewOverlay = true; // Show overlay when QR code is detected
             ar.viewAR = true; // Enable AR view
         }
         else {
+            focusTunnel.style.display = 'block'; // Hide the focus tunnel when no QR code is detected
             ar.viewOverlay = false; // Hide overlay when no QR code is detected
             ar.viewAR = false; // Disable AR view
         }
