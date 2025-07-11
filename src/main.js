@@ -16,8 +16,10 @@ import {
     addErrorMessages, 
     initErrorScreen
 } from './elements/error-screen.js';
-import {initRouteOptions, closeRouteOptions} from './elements/route-option.js';
+import {endScreen,initEndScreen, showEndScreen, hideEndScreen} from './elements/end-screen.js';
+import {initRouteOptions, closeRouteOptions, showRouteOptions} from './elements/route-option.js';
 import CONFIG from './config.js';
+
 
 
 console.log(CONFIG.baseUrl);
@@ -45,6 +47,8 @@ const MARKER_TYPES = {
 }
 
 const focusTunnel = document.querySelector("#focus");
+let sessionActive = false; // Flag to indicate if the AR session is active
+let routeChanged = false; // Flag to indicate if the route has changed
 
 const app = {
     mindAR: null,
@@ -86,10 +90,12 @@ const app = {
         "route-a": {
             "L001-Z001-M001": { id: "L001-Z001-M001", icon_type: MARKER_TYPES.DIRECTION, pointer_direction: 0, info: "Turn left at the next intersection.", coordinates: {x: 1, y: 0, z: 1} },
             "L001-Z001-M002": { id: "L001-Z001-M002", icon_type: MARKER_TYPES.DIRECTION, pointer_direction: 90, info: "Continue straight for 100 meters.", coordinates: {x: 2, y: 0, z: 2} },
-            "L001-Z001-M003": { id: "L001-Z001-M003", icon_type: MARKER_TYPES.DIRECTION, pointer_direction: 180, info: "Turn right at the next intersection.", coordinates: {x: 3, y: 0, z: 3} },
+            "L001-Z001-M003": { id: "L001-Z001-M003", icon_type: MARKER_TYPES.END, pointer_direction: 0, info: "Turn right at the next intersection.", coordinates: {x: 3, y: 0, z: 3} },
         
         },
-        "route-b": {}
+        "route-b": {
+            "L001-Z001-M003": { id: "L001-Z001-M003", icon_type: MARKER_TYPES.END, pointer_direction: 0, info: "Turn right at the next intersection.", coordinates: {x: 3, y: 0, z: 3} },
+        }
     }
 }
 
@@ -104,7 +110,8 @@ new Promise((resolve, reject) => {
     // then app checks device compatibility
     initLoadingScreen();
     initErrorScreen();
-    
+    initEndScreen();
+
     // Checks for device support
     try {
         let errorMessages = [];
@@ -204,7 +211,7 @@ new Promise((resolve, reject) => {
     // Next the app will load the waypoints data from the server.
     console.log("Cameras found, loading waypoints data...");
     changeLoadingText("Loading waypoints data...");
-    const waypointsLoader = new LoadWaypoints(app.baseUrl); // Replace with your actual API base URL
+    const waypointsLoader = new LoadWaypoints(CONFIG.baseUrl); // Replace with your actual API base URL
     
     const arrayToObject = (array) => {
         const newObj = {};
@@ -218,7 +225,7 @@ new Promise((resolve, reject) => {
         return newObj;
     };
 
-    /*
+    
     // load waypoints for route-a
     waypointsLoader.downloadWaypoints("route-a").then((waypoints) => {
         if (!waypoints) {
@@ -232,7 +239,7 @@ new Promise((resolve, reject) => {
         addErrorMessages(`Error loading waypoints data: ${error.message}`);
         throw error;
     });
-
+    /*
     // load waypoints for route-b
     waypointsLoader.downloadWaypoints("route-b").then((waypoints) => {
         if (!waypoints) {
@@ -248,6 +255,7 @@ new Promise((resolve, reject) => {
         throw error;
     });
     */
+    
 
 }).then(() => {
     
@@ -329,14 +337,27 @@ new Promise((resolve, reject) => {
         console.log("QR code reader loaded, selecting route...");
         hideLoadingScreen();
         initRouteOptions();
+  
+        document.querySelector("#end-screen-button").addEventListener('click', () => {
+            showRouteOptions(); // Show the route selection screen when the end screen is closed
+        });
+        
+    
 
         document.querySelector("#route-select").addEventListener("change", (event) => {
             const selectedRoute = event.target.value;
+            routeChanged = true; // Set the route changed flag to true
             if (selectedRoute && app.routesData[selectedRoute]) {
                 app.selectedRoute = selectedRoute;
                 console.log(`Selected route: ${selectedRoute}`);
+
                 closeRouteOptions(); // Close the route selection screen
-                startARSession(); // Start the AR session
+                if (!sessionActive) {
+                    startARSession(); 
+                    return; 
+                } // If AR system is not initialized, start the AR session directly
+                app.graphics.start(); // Start the AR graphics system
+                
             } else {
                 console.error("Invalid route selected.");
                 addErrorMessages("Invalid route selected. Please select a valid route.");
@@ -361,8 +382,11 @@ new Promise((resolve, reject) => {
 });
 
 
-function startARSession() {
 
+
+
+function startARSession() {
+    sessionActive = true; // Set the session active flag to true
     debuggingInfo(debugOptions); 
     console.log("Starting AR session...");
     showLoadingScreen();
@@ -420,12 +444,15 @@ function startARSession() {
                     updateQrDebugInfo(); // Update the QR debug info
             }
             if(qr.isDetected) {
-            
-                if(qr.isNew()) {
+                //console.log("QR code detected");
+                if(qr.isNew() || routeChanged) {
+                    routeChanged = false; // Reset the route changed flag
                     const code = qr.activeCode; // Get the current active QR code
+                    console.log("Route selected:", app.selectedRoute);
                     if(routeData[app.selectedRoute][code]) {
                         
                         const marker = routeData[app.selectedRoute][code];
+
                         //console.log("Marker found:", navIcon);
                         switch (marker.icon_type) {
                             case MARKER_TYPES.DIRECTION:
@@ -435,15 +462,16 @@ function startARSession() {
                                 break;
                             case MARKER_TYPES.END: 
                                 showEndScreen();
-                                mindAR.stop(); // Stop the AR session
+
+                                ar.stop(); // Stop the AR session
                                 return; // Stop the AR session when the end marker is reached       
-                                break;
                             default:
                                 console.warn(`Unknown marker type: ${marker.icon_type}`);
                                 break;
                         }
               
                     }
+
                 }
                 if (intervalId) {
                     clearInterval(intervalId); // Clear the interval when QR code is detected
@@ -605,6 +633,7 @@ function debuggingInfo (debugOptions) {
             qrDiv.id = "qr-debug-info";
             qrDiv.innerHTML = `<h2>QR Code Debugging Info</h2>
             <ul>
+                <li>Route: <span id="selected-route">"N/A"</span></li>
                 <li>QR Code Detected: <span id="qr-detected">false</span></li>
                 <li>Last QR Code: <span id="last-qr-code">N/A</span></li>
                 <li>Current QR Code: <span id="current-qr-code">N/A</span></li>
@@ -628,8 +657,10 @@ function updateQrDebugInfo() {
     const qrDetectedElem = document.getElementById("qr-detected");
     const lastQrCodeElem = document.getElementById("last-qr-code");
     const currentQrCodeElem = document.getElementById("current-qr-code");
+    const selectedRouteElem = document.getElementById("selected-route");
 
     if (app.qrReader.isReady) {
+        selectedRouteElem.textContent = app.selectedRoute || "N/A";
         qrDetectedElem.textContent = app.qrReader.codeDetected ? "true" : "false";
         lastQrCodeElem.textContent = app.qrReader.lastCode || "N/A";
         currentQrCodeElem.textContent = app.qrReader.currentCode || "N/A";

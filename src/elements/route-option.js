@@ -25,5 +25,11 @@ const closeRouteOptions = () => {
         routeOptions.style.display = "none";
     }
 };
+const showRouteOptions = () => {
+    if (!routeOptions) {
+        initRouteOptions();
+    }
+    routeOptions.style.display = "flex";
+};
 
-export { initRouteOptions, closeRouteOptions};
+export { initRouteOptions, closeRouteOptions, showRouteOptions};

@@ -5,8 +5,17 @@
     
     <link rel="stylesheet" href="./src/style.css">
     <meta name="viewport" content="width=device-width">
+    <meta name="theme-color" content="#000000" id="theme-color">
 </head>
 <body>
+    <script>
+        // use the style variables from the root element to set the theme color
+        const rootStyles = getComputedStyle(document.documentElement);
+        const themeColor = rootStyles.getPropertyValue('--background-color').trim();
+        document.getElementById('theme-color').setAttribute('content', themeColor);
+        
+    </script>
+
     <div id="focus">
         <div id="focus-content">scanning</div>
         <div id="focus-tunnel"></div>
