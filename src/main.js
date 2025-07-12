@@ -34,6 +34,7 @@ const debugOptions = {
 
 
 const MARKER_TYPES = {
+    POINTER: "POINTER",
     DIRECTION: "DIRECTION",
     DIRECTION_WITH_INFO: "DIRECTION_WITH_INFO",
     DESTINATION: "DESTINATION",
@@ -130,7 +131,7 @@ new Promise((resolve, reject) => {
         }
 
         if (errorMessages.length > 0) {
-            const errorList = "";
+            let errorList = "";
             errorMessages.forEach((msg) => {
                 errorList += `<li>${msg}</li>`;
             });
@@ -211,6 +212,7 @@ new Promise((resolve, reject) => {
     // Next the app will load the waypoints data from the server.
     console.log("Cameras found, loading waypoints data...");
     changeLoadingText("Loading waypoints data...");
+    console.log("Base URL for API:", CONFIG.baseUrl);
     const waypointsLoader = new LoadWaypoints(CONFIG.baseUrl); // Replace with your actual API base URL
     
     const arrayToObject = (array) => {
@@ -231,6 +233,7 @@ new Promise((resolve, reject) => {
         if (!waypoints) {
             throw new Error("No waypoints data found for the specified route.");
         }
+        
         app.routesData["route-a"] = arrayToObject(waypoints);
         console.log("Waypoints data loaded successfully.");
     }).catch((error) => {
@@ -239,7 +242,7 @@ new Promise((resolve, reject) => {
         addErrorMessages(`Error loading waypoints data: ${error.message}`);
         throw error;
     });
-    /*
+
     // load waypoints for route-b
     waypointsLoader.downloadWaypoints("route-b").then((waypoints) => {
         if (!waypoints) {
@@ -254,9 +257,9 @@ new Promise((resolve, reject) => {
         addErrorMessages(`Error loading waypoints data: ${error.message}`);
         throw error;
     });
-    */
+       /* */
     
-
+//4548
 }).then(() => {
     
     // After cameras are found, then the app will load the 3D assets 
@@ -326,7 +329,7 @@ new Promise((resolve, reject) => {
     // After the AR system is initialized, the app will load the QR code reader
     console.log("AR system initialized, loading QR code reader...");
     changeLoadingText("Loading QR code reader...");
-    app.qrReader = new QRReader(document.createElement('canvas'), 'jsqr-worker.js');
+    app.qrReader = new QRReader(document.createElement('canvas'));
    
 
 }).then(() => {
@@ -342,7 +345,6 @@ new Promise((resolve, reject) => {
             showRouteOptions(); // Show the route selection screen when the end screen is closed
         });
         
-    
 
         document.querySelector("#route-select").addEventListener("change", (event) => {
             const selectedRoute = event.target.value;
@@ -380,10 +382,6 @@ new Promise((resolve, reject) => {
     addErrorMessages(`Cannot run app fatal error!!!`);
 
 });
-
-
-
-
 
 function startARSession() {
     sessionActive = true; // Set the session active flag to true
@@ -453,9 +451,9 @@ function startARSession() {
                         
                         const marker = routeData[app.selectedRoute][code];
 
-                        //console.log("Marker found:", navIcon);
+                        console.log("Marker found:", marker.icon_type);
                         switch (marker.icon_type) {
-                            case MARKER_TYPES.DIRECTION:
+                            case MARKER_TYPES.POINTER:
                                 navIcon.setIcon(app.ARAssets.objects3D.directionArrow.model);
                                 navIcon.offsetRotation(marker.pointer_direction);
                                 
@@ -508,117 +506,7 @@ function startARSession() {
 }
  
 
-  
-/*
-
-await loadFromGTLF('./assets/wayfinding.glb')
-.then((assets) => {
-    console.log("Attempting to load assets.");
-
-    console.log(assets)
-
-    const mindAR = app.mindAR;
-    const objects3D = app.ARAssets.objects3D;
-    const overlayLighting = app.ARAssets.lighting.overlaySceneLighting;
-    const qr = app.qrReader;
-
-
-    objects3D.directionArrow.model = assets.getObjectByName(objects3D.directionArrow.name);
-    if (!objects3D.directionArrow.model) {
-        throw new Error("3D model not found in the GLTF file.");
-    }
-    
-    // setup the AR graphics
-    const ar = new ARGraphics(mindAR, document.querySelector("#container"), true);
-
-    // Add a navigation icon to the AR scene
-    const navIcon = new NavIcon(ar);
-    navIcon.setIcon(objects3D.directionArrow.model);
-
-    // Add lights to the overlay scene
-    overlayLighting.forEach(light => {
-        ar.hoverScene.add(light); // Add lights to the hover scene
-    });
-
-    // run the AR session
-    ar.start();
-
-    ar.viewAR = false; // Enable AR view
-    ar.viewOverlay = false; // Enable overlay view
-    let ARsession = false; // Flag to indicate that the AR session is active
-    let intervalId = null; // Variable to hold the interval ID
-    ar.renderer.setAnimationLoop(() => {
-        if (qr.isReady && mindAR.video.readyState === mindAR.video.HAVE_ENOUGH_DATA) {
-            qr.scanning(mindAR.video, app.qrTimingRef);    
-            if (DEBUG_AR && debugOptions.qr) {
-                    updateQrDebugInfo(); // Update the QR debug info
-            }
-            if(qr.isDetected) {
-            
-                if(qr.isNew()) {
-                    const code = qr.activeCode; // Get the current active QR code
-                    for (const route of routeData) {
-                        if (route.id === code) {
-             
-                            // Update the navigation icon with the new route data
-                            //navIcon.setIconType(route.icon_type);
-                            navIcon.offsetRotation(route.pointer_direction);
-                            //navIcon.setInfo(route.info);
-                            //navIcon.setCoordinates(route.coordinates);
-                        }
-                    }
-                }
-                if (intervalId) {
-                    clearInterval(intervalId); // Clear the interval when QR code is detected
-                    intervalId = null; // Reset the interval ID
-                }
-            }            
-            
-            // if qr or code is not detected, set a delay before removing the navigation icon
-            if (!ar.active || !qr.isDetected) {
-                if (!intervalId) {
-                    intervalId = setTimeout(() => {
-                        ARsession = false; 
-                        //navIcon.resetOrientation(); // Reset the navigation icon orientation
-                    }, 100); 
-                }
-            }
-            else {
-                ARsession = true; // Set AR session to true when QR code is detected
-            }
-        }
-        if (ARsession) {
-            ar.viewOverlay = true; // Show overlay when QR code is detected
-            ar.viewAR = true; // Enable AR view
-        }
-        else {
-            ar.viewOverlay = false; // Hide overlay when no QR code is detected
-            ar.viewAR = false; // Disable AR view
-        }
-        
-        ar.render();
-    });
-})
-.catch((error) => {
-    console.error("Errors after loading GTLF file", error);
-    if (DEBUG_AR) {
-        const list = DEBUG_INFO_ELEM.querySelector("ul");
-        if (!list) {
-            const ul = document.createElement("ul");
-            DEBUG_INFO_ELEM.appendChild(ul);
-        }
-        const li = document.createElement("li");
-        li.textContent = `${error.message}`;
-        DEBUG_INFO_ELEM.querySelector("ul").appendChild(li);
-    }
-});
-
-
-camSwitchBtn.addEventListener("click", () => {
-    app.mindAR.switchCamera();
-});
-*/
-
+ 
 function debuggingInfo (debugOptions) {
     if (DEBUG_AR) {
         const DEBUG_INFO_ELEM = document.getElementById("debug-info");

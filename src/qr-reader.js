@@ -1,4 +1,4 @@
-
+import JsqrWorker from './jsqr-worker.js?worker';
 /**
  * QRReader class for reading QR codes from an image/video source. 
  * This class pairs with a web worker. Default worker is 'jsqr-worker.js'.
@@ -11,13 +11,10 @@ export default class QRReader {
      * @param {HTMLCanvasElement} canvasForOffscreen 
      * @param {string} workerPath 
      */
-    constructor( canvasForOffscreen, workerPath= 'jsqr-worker.js',) {
-        if (!workerPath) {
-            console.error("Valid worker path is required.");
-            throw new Error("Worker path is not defined.");
-        }
+    constructor( canvasForOffscreen) {
+
         try {
-            this.worker = new Worker(new URL(workerPath, import.meta.url), { type: 'module' });
+            this.worker = new JsqrWorker();
         } catch (error) {
             console.error("Failed to create worker:", error);
             throw error;

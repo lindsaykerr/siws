@@ -1,27 +1,28 @@
-import { defineConfig } from 'vite'
-import myconfig from './project.config';
+import { defineConfig,loadEnv } from 'vite'
+//import myconfig from './project.config';
 
 
 export default defineConfig(({command, mode}) => {
+    const env = loadEnv(mode, process.cwd(), '');
 
     if (command === 'serve') {
         return {
             server: {
-                allowedHosts: myconfig.dev.server.allowedHosts,
+                allowedHosts: env.VITE_ALLOWED_HOSTS ? env.VITE_ALLOWED_HOSTS.split(',') : [],
         
                 hmr: {
-                    host: myconfig.dev.server.hmr.host,
-                    port: myconfig.dev.server.hmr.port,
-                    protocol: myconfig.dev.server.hmr.protocol,
-                    clientPort: myconfig.dev.server.hmr.clientPort,
+                    host: env.VITE_HMR_HOST,
+                    port: parseInt(env.VITE_HMR_PORT || '24678', 10),
+                    protocol: env.VITE_HMR_PROTOCOL,
+                    clientPort: parseInt(env.VITE_HMR_CLIENT_PORT || '24678', 10),
                 },
             },
-            base: myconfig.dev.base,
+            base: env.VITE_APP_BASE_PATH || '/',
         };
     }
     else {
         return{
-            base: myconfig.build.base || '/',
+            base: '/wayfinding/app/',
             outDir: 'dist',
             build: {
                 minify: 'esbuild',

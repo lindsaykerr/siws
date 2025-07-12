@@ -1,7 +1,9 @@
+
+
 export default class LoadWaypoints {
 
     async #getWaypointsList(route){
-        const baseUrl = this.#baseUrl; // Replace with your actual base URL
+        const baseUrl = this.#baseUrl; 
 
         return fetch(
             `${baseUrl}/get-points/${route}/`, 
@@ -13,9 +15,12 @@ export default class LoadWaypoints {
             }).then((result) => {
                 if (result.ok) {
 
-                    return result.json().catch((error) => {
+                    return result.json().then((data) => {
+                        return data;
+                    }).catch((error) => {
                         throw Error(`Error parsing JSON:", ${error}`);
                     });
+                    
                 } else if (result.status === 404) {
                     throw Error(`Route ${route} not found. Please check the route name.`);
                 } else {
@@ -38,8 +43,8 @@ export default class LoadWaypoints {
         if (!route) {
             throw Error("Route name is required to download waypoints.");
         }
-        await this.#getWaypointsList(route).then((waypoints) => {
-            this.waypoints = waypoints;
+        return await this.#getWaypointsList(route).then((waypoints) => {
+            
             return waypoints;
         }).catch((error) => {
             console.error("Error loading waypoints:", error);
