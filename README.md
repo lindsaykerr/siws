@@ -1,3 +1,2 @@
 # siws
-Simple Internal Wayfinding System
-Foo
+Simple AR marker and Web based Indoor Wayfinding System Prototype
