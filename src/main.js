@@ -90,7 +90,7 @@ const app = {
     routesData: {
         "route-a": {
             "L001-Z001-M001": { id: "L001-Z001-M001", icon_type: MARKER_TYPES.DIRECTION, pointer_direction: 0, info: "Turn left at the next intersection.", coordinates: {x: 1, y: 0, z: 1} },
-            "L001-Z001-M002": { id: "L001-Z001-M002", icon_type: MARKER_TYPES.DIRECTION, pointer_direction: 90, info: "Continue straight for 100 meters.", coordinates: {x: 2, y: 0, z: 2} },
+            "L001-Z001-M002": { id: "L001-Z001-M002", icon_type: MARKER_TYPES.POINTER, pointer_direction: 20, info: "Continue straight for 100 meters.", coordinates: {x: 2, y: 0, z: 2} },
             "L001-Z001-M003": { id: "L001-Z001-M003", icon_type: MARKER_TYPES.END, pointer_direction: 0, info: "Turn right at the next intersection.", coordinates: {x: 3, y: 0, z: 3} },
         
         },
@@ -227,37 +227,38 @@ new Promise((resolve, reject) => {
         return newObj;
     };
 
-    
-    // load waypoints for route-a
-    waypointsLoader.downloadWaypoints("route-a").then((waypoints) => {
-        if (!waypoints) {
-            throw new Error("No waypoints data found for the specified route.");
-        }
-        
-        app.routesData["route-a"] = arrayToObject(waypoints);
-        console.log("Waypoints data loaded successfully.");
-    }).catch((error) => {
-        hideLoadingScreen();
-        showErrorScreen();
-        addErrorMessages(`Error loading waypoints data: ${error.message}`);
-        throw error;
-    });
+   if (!DEBUG_AR) {
+        // load waypoints for route-a
+        waypointsLoader.downloadWaypoints("route-a").then((waypoints) => {
+            if (!waypoints) {
+                throw new Error("No waypoints data found for the specified route.");
+            }
+            
+            app.routesData["route-a"] = arrayToObject(waypoints);
+            console.log("Waypoints data loaded successfully.");
+        }).catch((error) => {
+            hideLoadingScreen();
+            showErrorScreen();
+            addErrorMessages(`Error loading waypoints data: ${error.message}`);
+            throw error;
+        });
 
-    // load waypoints for route-b
-    waypointsLoader.downloadWaypoints("route-b").then((waypoints) => {
-        if (!waypoints) {
-            throw new Error("No waypoints data found for the specified route.");
+        // load waypoints for route-b
+        waypointsLoader.downloadWaypoints("route-b").then((waypoints) => {
+            if (!waypoints) {
+                throw new Error("No waypoints data found for the specified route.");
+            }
+            app.routesData["route-b"] = arrayToObject(waypoints);
+            console.log("Waypoints data loaded successfully.");
         }
-        app.routesData["route-b"] = arrayToObject(waypoints);
-        console.log("Waypoints data loaded successfully.");
+        ).catch((error) => {
+            hideLoadingScreen();
+            showErrorScreen();
+            addErrorMessages(`Error loading waypoints data: ${error.message}`);
+            throw error;
+        });
     }
-    ).catch((error) => {
-        hideLoadingScreen();
-        showErrorScreen();
-        addErrorMessages(`Error loading waypoints data: ${error.message}`);
-        throw error;
-    });
-       /* */
+    
     
 //4548
 }).then(() => {
@@ -303,7 +304,7 @@ new Promise((resolve, reject) => {
             uiLoading: true,
         })
 
-        app.graphics = new ARGraphics(app.mindAR, document.querySelector("#container"), false);
+        app.graphics = new ARGraphics(app.mindAR, document.querySelector("#container"), true);
 
         // Add a navigation icon to the AR scene
         app.navIcon = new NavIcon(app.graphics);

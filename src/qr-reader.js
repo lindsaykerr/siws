@@ -1,5 +1,8 @@
 import JsqrWorker from './jsqr-worker.js?worker';
 /**
+ * All third party libraries use copyright of the respective authors.
+ */
+/**
  * QRReader class for reading QR codes from an image/video source. 
  * This class pairs with a web worker. Default worker is 'jsqr-worker.js'.
  */

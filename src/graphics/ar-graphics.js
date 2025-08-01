@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import {MindARThree} from 'mind-ar/dist/mindar-image-three.prod.js';
 
+/**
+ * All third party libraries use copyright of the respective authors.
+ */
 
 
 /**
@@ -119,8 +122,8 @@ export default class ARGraphics {
             1000    // far
         );
         */
-        this.hoverCamera.position.z = 0;
-        this.hoverCamera.position.y = 0;
+        this.hoverCamera.position.set(0, 5, 10); 
+        this.hoverCamera.lookAt(new THREE.Vector3(0, 0, -1)); // Look at the center of the scene
         //this.hoverCamera.position.set(0, 0, 5);
         this.hoverScene.add(this.hoverCamera);
         
@@ -169,12 +172,16 @@ export default class ARGraphics {
       
         if (!this.DEBUG) return; // Exit if debug mode is not enabled
 
+
         const geometry = new THREE.PlaneGeometry(1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 });
+
+        const material = new THREE.MeshBasicMaterial({ color: 0x555555, transparent: true, opacity: 0.5 });
         const projPlane = new THREE.Mesh(geometry, material);
         projPlane.position.set(0, 0, -0.1);
-    
+
+        
         this.#ARAnchor.group.add(projPlane)
+    
     }
 
 

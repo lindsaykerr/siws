@@ -70,6 +70,7 @@ export default class NavIcon {
      * out the transition, preventing abrupt changes in direction. 
      */
     #updateIconDirection() {
+        
         const smoothed = this.navGroup.quaternion.slerp(
             this.#AROrientation, 0.1
         );                                                      
@@ -168,7 +169,7 @@ export default class NavIcon {
         }
         // degrees to quaternion conversion
         const radians = THREE.MathUtils.degToRad(degrees); // Convert degrees to radians
-        this.icon.rotation.y = radians; // Update the icon's rotation based
+        this.icon.rotation.y = -radians; // Update the icon's rotation based
     }
 
     /**
@@ -199,8 +200,8 @@ export default class NavIcon {
      */
     setIconParameters(iconParam = {
         position: { x: 0, y: 0, z: 0 },
-        rotation: { x: Math.PI / 8, y: 0, z: 0 },
-        scale: { x: 1.5, y: 1.5, z: 1.5 }
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1.3, y: 1.3, z: 1.3 }
     }) {
         if (!this.icon) {
             console.warn("Icon is not loaded yet. Cannot set parameters.");
@@ -238,5 +239,6 @@ export default class NavIcon {
         this.navGroup.add(this.icon); // Add the icon to the pointer group
 
         this.setIconParameters(); // Set default parameters for the icon
+        //this.offsetRotation(180); // Reset the rotation offset to 0
     }
 }

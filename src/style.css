@@ -95,19 +95,13 @@ select {
 #focus-tunnel {
     
     position: absolute; /* Changed to fixed to cover the viewport */
-    top: 50%;
+    top: 60%;
     left: 50%;
     transform: translate(-50%, -100%);
 
     width: 60vw;
     height: 60vw;
     z-index: 2000;
-
-
-    
-
-
-  
 
     border-left: solid 10px rgb(255, 255, 255);
     border-right: solid 10px rgb(255, 255, 255);
@@ -135,7 +129,7 @@ select {
 
 #focus-content {
     position: absolute;
-    top: 50%;
+    top: 60%;
     left: 50%;
     width: 100%;
     height: 20%;
